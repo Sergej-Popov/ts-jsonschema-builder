@@ -1,6 +1,6 @@
 import { describe, it } from "mocha";
 
-import { Schema, ArraySchema, StringSchema, AnyOf, NumberSchema, AllOf } from "../src";
+import { Schema, ArraySchema, StringSchema, AnyOf, NumberSchema, AllOf, Not } from "../src";
 import { Model } from "./models";
 import { assertValid, assertInvalid } from "./assertion";
 
@@ -72,6 +72,38 @@ describe("Usage", () => {
 
     assertValid(schema, model);
   });
+
+  it("FizzBuzz", () => {
+
+    const by3 = new NumberSchema({ multipleOf: 3 });
+    const by5 = new NumberSchema({ multipleOf: 5 });
+
+    const fizz = new Schema<Model>()
+      .with(m => m.NumberProp,
+        new AllOf([by3, new Not(by5)]))
+      .build();
+
+    const buzz = new Schema<Model>()
+      .with(m => m.NumberProp,
+        new AllOf([by5, new Not(by3)])
+      )
+      .build();
+
+    const fizzBuzz = new Schema<Model>()
+      .with(m => m.NumberProp,
+        new AllOf([by3, by5]))
+      .build();
+
+    assertValid(fizz, { NumberProp: 66 });
+    assertValid(buzz, { NumberProp: 55 });
+    assertValid(fizzBuzz, { NumberProp: 150 });
+
+    assertInvalid(buzz, { NumberProp: 66 });
+    assertInvalid(fizz, { NumberProp: 55 });
+    assertInvalid(fizzBuzz, { NumberProp: 111 });
+
+  });
+
 });
 
 
